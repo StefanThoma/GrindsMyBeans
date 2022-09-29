@@ -21,28 +21,30 @@ shinyUI(fluidPage(
         sidebarPanel(
           selectInput("grinder",
                       "Grinder",
-                      c("1zpresso Jx Pro"),
+                      choices = c("1zpresso Jx Pro", "mtcars10"),
                       selected = "1zpresso Jx Pro"),
+          
+        
+        
           shiny::numericInput("offset",
                               "Zero point offset on grinder",
                               value = 0,
                               ),
-          shiny::numericInput("current_setting",
-                              "Current grind setting",
-                              value = 40,
-          ),
           
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+          shiny::uiOutput("currentSettingUI")
         ),
         
 
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("distPlot")
+            plotOutput("grinder")
         )
     )
 ))
+
+
+
+
+
+
+
