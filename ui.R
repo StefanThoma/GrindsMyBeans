@@ -21,15 +21,13 @@ shinyUI(fluidPage(
         sidebarPanel(
           selectInput("grinder",
                       "Grinder",
-                      choices = c("1zpresso Jx Pro", "mtcars10"),
+                      choices = c("1zpresso Jx Pro"),
                       selected = "1zpresso Jx Pro"),
           
         
         
-          shiny::numericInput("offset",
-                              "Zero point offset on grinder",
-                              value = 0,
-                              ),
+          shiny::uiOutput("offsetUI"),
+
           
           shiny::uiOutput("currentSettingUI")
         ),
