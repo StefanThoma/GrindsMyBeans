@@ -1,4 +1,19 @@
+# setting used by ST
+setting_ST <- "1-5-3"
 
+# get helping function
+source("create_grinders.R")
+
+# read data
+#extend_range <- 2
+
+grinder <- assign_l(zpresso_jx_pro, shift = 0) 
+
+espresso_range <- grinder$setting[grinder$espresso]
+espresso_range <- range(espresso_range) + c(-diff(range(espresso_range)), diff(range(espresso_range)))
+
+
+espresso_range <- seq(from = median(espresso_range) - floor(((extend_range-1) * length(espresso_range)), to = median(espresso_range) + floor(((extend_range-1) * length(espresso_range)))
 
 #' generative model
 #'

@@ -35,7 +35,9 @@ shinyUI(fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("grinder")
+            plotOutput("grinder"),
+            plotOutput("grinder2")
+            
         )
     )
 ))

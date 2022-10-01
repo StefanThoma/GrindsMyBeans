@@ -11,6 +11,7 @@
 library(shiny)
 library(tidyverse)
 library(ggplot2)
+pacman::p_load_current_gh("hrbrmstr/ggalt")
 
 # read data
 
@@ -64,6 +65,22 @@ shinyServer(function(input, output) {
     datasetInput <- reactive({
       switch(input$grinder,
              "1zpresso Jx Pro" = zpresso_jx_pro)
+      
+      
+      
+    })
+    
+    dataset_wide_shifted <-  reactive({
+      grinder_wide <- datasetInput() 
+      
+      # account for shift
+      shift <- - grinder_wide$setting[grinder_wide$label==input$offset]
+      
+      #grinder_wide$setting <- grinder_wide$setting + grinder_wide$setting[grinder_wide$label==input$offset]
+      assign_l(grinder_wide, shift)
+      
+      
+      
     })
     
     
@@ -71,16 +88,16 @@ shinyServer(function(input, output) {
     
     output$grinder <- renderPlot({
     
-      grinder_wide <- datasetInput() 
-      
-      #grinder_wide <- zpresso_jx_pro
-      
-      
-      # account for shift
-      shift <- -grinder_wide$setting[grinder_wide$label==input$offset]
-      
-      #grinder_wide$setting <- grinder_wide$setting + grinder_wide$setting[grinder_wide$label==input$offset]
-      grinder_wide <- assign_l(grinder_wide, shift)
+      grinder_wide <- dataset_wide_shifted()
+      #
+      ##grinder_wide <- zpresso_jx_pro
+      #
+      #
+      ## account for shift
+      #shift <- - grinder_wide$setting[grinder_wide$label==input$offset]
+      #
+      ##grinder_wide$setting <- grinder_wide$setting + grinder_wide$setting[grinder_wide$label==input$offset]
+      #grinder_wide <- assign_l(grinder_wide, shift)
       
       #offset <- "0-1-1"
       #zpresso_jx_pro$setting +-zpresso_jx_pro$setting[zpresso_jx_pro$label == offset]
@@ -90,26 +107,69 @@ shinyServer(function(input, output) {
           type = factor(type, levels = order)
         )
       
-        
-        
-        
-      ggplot(data = grinder_long %>% filter(recommended), aes(x = setting, y = type, color = type)) + 
-        geom_line(size = 10, width = 1)  + 
-        theme_bw() +
-        theme(legend.position = "bottom") + 
-        scale_x_continuous(breaks = c(0:10*20),
-                           labels = grinder_wide$label[c(0:10*20+1)],
-                           limits = c(min(grinder_wide$setting), max(grinder_wide$setting))) +
-        geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$current_setting])+
-        geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$offset], color = "red")
       
+        
+        
+        
+    # ggplot(data = grinder_long %>% filter(recommended), aes(x = setting, y = type, color = type)) + 
+    #   #geom_line(size = 10, width = 1)  + 
+    #   geom_tile(aes(fill = type, color = NULL)) + 
+    #   theme_bw() +
+    #   theme(legend.position = "bottom") + 
+    #   scale_x_continuous(breaks = c(0:10*20),
+    #                      labels = grinder_wide$label[c(0:10*20+1)],
+    #                      limits = c(min(grinder_wide$setting), max(grinder_wide$setting))) +
+    #   geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$current_setting])+
+    #   geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$offset], color = "red")
+        
+        ## does not quite work yet, problem with shift and displaying all types settings
+        plot_data <- grinder_long %>% group_by(type) %>%
+          summarize(x = min(which(recommended)),
+                    xmax = max(which(recommended)),
+                    type = type)
+        
+        # dumbbell plot
+        ggplot(data = plot_data, aes(x = x, xend = xmax, y = type, color = type)) + 
+          #geom_line(size = 10, width = 1)  + 
+          geom_dumbbell(aes(fill = type)) + 
+          theme_bw() +
+          theme(legend.position = "bottom") + 
+          scale_x_continuous(breaks = c(0:10*20),
+                             labels = grinder_wide$label[c(0:10*20+1)],
+                             limits = c(min(grinder_wide$setting), max(grinder_wide$setting))) +
+          geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$current_setting])+
+          geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$offset], color = "red")
       
     })
+    
+     output$grinder2 <-  renderPlot({
+       
+       grinder_wide <- dataset_wide_shifted()
+       grinder_long <- grinder_wide %>% pivot_longer(cols = turkish:french_press, names_to = "type", values_to = "recommended") %>%
+         mutate(
+           type = factor(type, levels = order)
+         )
+       
+       #min(which(grinder$espresso))
+       
+       ggplot(data = grinder_wide, aes(x = min(which(espresso)), y = "espresso", color = espresso)) + 
+         #geom_line(size = 10, width = 1)  + 
+     geom_dumbbell(aes(fill = espresso, color = NULL, xend = max(which(espresso)))) + 
+         theme_bw() +
+         theme(legend.position = "bottom") + 
+         scale_x_continuous(breaks = c(0:10*20),
+                            labels = grinder_wide$label[c(0:10*20+1)],
+                            limits = c(min(grinder_wide$setting), max(grinder_wide$setting))) +
+         geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$current_setting])+
+         geom_vline(xintercept = grinder_wide$setting[grinder_wide$label == input$offset], color = "red")
+       
+     })
     
     output$currentSettingUI <- renderUI({
       shiny::selectInput("current_setting",
                          "Current grind setting",
-                         choices = datasetInput()$label)
+                         choices = datasetInput()$label,
+                        selected = input$offset)
     })
     
     output$offsetUI <- renderUI({
@@ -122,13 +182,3 @@ shinyServer(function(input, output) {
 
 })
 
-
-#zeropoint <- "0-5-0"
-#
-#ggplot(data = data %>% filter(recommended), aes(x = setting, y = type, color = type)) + 
-#    geom_line(size = 10)  + 
-#    theme_bw() +
-#    xlim(-1, 201) +
-#    theme(legend.position = "bottom") + 
-#    scale_x_continuous(breaks = c(0:10*20+1),
-#                       labels = zpresso_jx_pro$label[c(0:10*20+1)])
