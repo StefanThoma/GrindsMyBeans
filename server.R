@@ -7,13 +7,23 @@
 #    http://shiny.rstudio.com/
 #
 
-
-library(shiny)
-library(tidyverse)
-library(ggplot2)
+pacman::p_load(shinyauthr, ggplot2, tidyverse, shiny, sodium)
 pacman::p_load_current_gh("hrbrmstr/ggalt")
 
-# read data
+# login data
+
+
+# dataframe that holds usernames, passwords and other user data
+user_base <- tibble::tibble(
+  user = c("stefan", "daniel"),
+  password = sapply(c("pass1", "pass2"), sodium::password_store),
+  permissions = c("admin", "standard"),
+  name = c("stefan", "daniel")
+)
+
+
+
+
 
   # read data
 zpresso_jx_pro <- read.csv("grinders/zpresso_jx_pro.csv") %>%
@@ -56,12 +66,26 @@ assign_l <- function(data, shift = 0){
 
 
 
-
-
-
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
-    
+  
+  ############# Login below
+  credentials <- shinyauthr::loginServer(
+    id = "login",
+    data = user_base,
+    user_col = user,
+    pwd_col = password,
+    sodium_hashed = TRUE,
+    log_out = reactive(logout_init())
+  )
+  
+  # Logout to hide
+  logout_init <- shinyauthr::logoutServer(
+    id = "logout",
+    active = reactive(credentials()$user_auth)
+  )
+  ################## Login above
+  
     datasetInput <- reactive({
       switch(input$grinder,
              "1zpresso Jx Pro" = zpresso_jx_pro)
@@ -83,7 +107,27 @@ shinyServer(function(input, output) {
       
     })
     
+    # login UI 
     
+    
+    output$login_sidebarpanel <- renderUI({
+      
+      # Show only when authenticated
+      req(credentials()$user_auth)
+      
+      tagList(
+        # Sidebar with a slider input
+        column(width = 4,
+               
+               uiOutput("offsetUI")
+        ),
+        
+        column(width = 4,
+               p(paste("You have", credentials()$info[["permissions"]],"permission"))
+        )
+      )
+      
+    })
     
     
     output$grinder <- renderPlot({

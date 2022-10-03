@@ -15,10 +15,23 @@ shinyUI(fluidPage(
 
     # Application title
     titlePanel("Grind My Beans"),
+    
+    
+    
+    ## logout button
+    #div(class = "pull-right", shinyauthr::logoutUI(id = "logout")),
+    #
+    ## login section
+    #div(class = "pull-right", shinyauthr::loginUI(id = "login")),
+    
 
-    # Sidebar with a slider input for number of bins
+    # Sidebar
     sidebarLayout(
         sidebarPanel(
+    # Sidebar to show user info after login
+          uiOutput("login_sidebarpanel"),
+          
+          
           selectInput("grinder",
                       "Grinder",
                       choices = c("1zpresso Jx Pro"),
@@ -26,10 +39,10 @@ shinyUI(fluidPage(
           
         
         
-          shiny::uiOutput("offsetUI"),
+          uiOutput("offsetUI"),
 
           
-          shiny::uiOutput("currentSettingUI")
+          uiOutput("currentSettingUI")
         ),
         
 
