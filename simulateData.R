@@ -6,14 +6,14 @@ source("create_grinders.R")
 
 # read data
 #extend_range <- 2
-
 grinder <- assign_l(zpresso_jx_pro, shift = 0) 
 
+# get range of reasonable espresso settings
 espresso_range <- grinder$setting[grinder$espresso]
 espresso_range <- range(espresso_range) + c(-diff(range(espresso_range)), diff(range(espresso_range)))
+espresso_range <- seq(from = espresso_range[1], to = espresso_range[2])
 
-
-espresso_range <- seq(from = median(espresso_range) - floor(((extend_range-1) * length(espresso_range)), to = median(espresso_range) + floor(((extend_range-1) * length(espresso_range)))
+grinder$setting[grinder$label==setting_ST]
 
 #' generative model
 #'
